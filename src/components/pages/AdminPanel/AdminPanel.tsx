@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
+import { db } from '../../../firebaseConfig';
 import { doc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { RootState } from '../../../store/store';
 import {
   Button,
   CircularProgress,
@@ -84,7 +84,7 @@ const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     if (currentUser && currentUser!.role === 'admin') {
-      fetchUsers();
+      // fetchUsers();
     }
   }, [currentUser]);
 

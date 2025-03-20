@@ -44,27 +44,18 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                     <Box className="dropdown-menu">
                       {menu === 'movement' && (
                         <>
-                          <Link to="/butchery" className="dropdown-item">
-                            Забійний цех
+                          <Link to="/internal-movement" className="dropdown-item">
+                            Внутрішнє переміщення
                           </Link>
-                          <Link to="/fridge" className="dropdown-item">
-                            Холодильник
-                          </Link>
-                          <Link to="/freezer" className="dropdown-item">
-                            Морозильна камера
-                          </Link>
-                          <Link to="/sales" className="dropdown-item">
-                            Продаж
-                          </Link>
-                          <Link to="/finished-products" className="dropdown-item">
-                            Готова продукція
+                          <Link to="/departure" className="dropdown-item">
+                            Вибуття
                           </Link>
                         </>
                       )}
                       {menu === 'reports' && (
                         <>
                           <Link to="/report1" className="dropdown-item">
-                            Звіт 1
+                            Огляд залишків
                           </Link>
                           <Link to="/report2" className="dropdown-item">
                             Звіт 2
