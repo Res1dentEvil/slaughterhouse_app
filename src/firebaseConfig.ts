@@ -4,13 +4,7 @@ import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
 // Конфігурація Firebase
 const firebaseConfig = {
-  apiKey: 'AIzaSyBvjZseHvptSjnm_BIp-R0rAEw6IxXKmDg',
-  authDomain: 'slaughterhouse-app.firebaseapp.com',
-  projectId: 'slaughterhouse-app',
-  storageBucket: 'slaughterhouse-app.firebasestorage.app',
-  messagingSenderId: '638090714975',
-  appId: '1:638090714975:web:75c3df45b43cf9e85820ea',
-  measurementId: 'G-M6NDL2GDV5',
+  
 };
 
 const app = initializeApp(firebaseConfig);
