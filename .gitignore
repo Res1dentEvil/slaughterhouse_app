@@ -4,6 +4,7 @@
 /node_modules
 /build
 /public/uploads/
+/src/firebaseConfig.ts
 /.pnp
 .pnp.js
 

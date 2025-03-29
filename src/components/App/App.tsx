@@ -11,13 +11,15 @@ import GoogleLogin from '../GoogleLogin/GoogleLogin';
 import { Container, CircularProgress, Box } from '@mui/material';
 
 import HomePage from '../pages/HomePage/HomePage';
-import InternalMovement from '../pages/InternalMovement/InternalMovement';
 import Departure from '../pages/Departure/Departure';
 import Report1 from '../pages/Report1/Report1';
 import Report2 from '../pages/Report2/Report2';
 import Report3 from '../pages/Report3/Report3';
 import AdminPanel from '../pages/AdminPanel/AdminPanel';
 import NotFound from '../pages/NotFound/NotFound';
+import './App.scss';
+import InternalMovement from '../pages/InternalMovement/InternalMovement';
+import CreateMovement from '../pages/CreateMovement/CreateMovement';
 
 interface User {
   uid: string;
@@ -75,7 +77,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <Header user={userFromRedux || user} onSignOut={handleSignOut} />
-      <Container sx={{ mt: 4 }}>
+      <div className="app__wrapper">
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
             <CircularProgress />
@@ -83,6 +85,14 @@ const App: React.FC = () => {
         ) : (
           <Routes>
             <Route path="/" element={user || userFromRedux ? <HomePage /> : <GoogleLogin />} />
+            {/*<Route*/}
+            {/*  path="/internal-movement"*/}
+            {/*  element={user || userFromRedux ? <CreateMovement /> : <Navigate to="/" />}*/}
+            {/*/>*/}
+            <Route
+              path="/create-movement"
+              element={user || userFromRedux ? <CreateMovement /> : <Navigate to="/" />}
+            />
             <Route
               path="/internal-movement"
               element={user || userFromRedux ? <InternalMovement /> : <Navigate to="/" />}
@@ -110,7 +120,7 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         )}
-      </Container>
+      </div>
     </Router>
   );
 };

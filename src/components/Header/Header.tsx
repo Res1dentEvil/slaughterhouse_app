@@ -44,6 +44,9 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                     <Box className="dropdown-menu">
                       {menu === 'movement' && (
                         <>
+                          <Link to="/create-movement" className="dropdown-item">
+                            Створити переміщення
+                          </Link>
                           <Link to="/internal-movement" className="dropdown-item">
                             Внутрішнє переміщення
                           </Link>
