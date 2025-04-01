@@ -10,7 +10,14 @@ const CreateMovement: React.FC = () => {
 
   const handleCreateRow = () => {
     setIsCreating(true);
-    setRows([...rows, <CreateMovementRow key={rows.length} onSave={() => setIsCreating(false)} />]);
+    setRows([
+      ...rows,
+      <CreateMovementRow
+        key={rows.length}
+        onSave={() => setIsCreating(false)}
+        cleanRows={() => setRows([])}
+      />,
+    ]);
   };
 
   return (

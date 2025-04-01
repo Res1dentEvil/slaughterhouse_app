@@ -11,16 +11,22 @@ const CreateMovementToolbar: React.FC<Props> = ({ onCreate, isDisabled }) => {
     <Box
       sx={{
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         p: 2,
         position: 'sticky',
         top: '0px',
         zIndex: 10,
         background: 'white',
-        boxShadow: '0px 1px 0px rgba(0, 0, 0, 0.1)',
+        boxShadow: 'none',
       }}
     >
-      <Button variant="contained" color="primary" onClick={onCreate} disabled={isDisabled}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={onCreate}
+        disabled={isDisabled}
+        sx={{ width: '150px' }}
+      >
         Створити
       </Button>
     </Box>

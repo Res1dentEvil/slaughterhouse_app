@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Movement } from '../../types/types';
-import { initialData } from '../../utils/mockData';
 import MovementToolbar from './MovementToolbar';
 import MovementTable from './MovementTable';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../../firebaseConfig';
+import { Timestamp } from 'firebase/firestore';
 import {
   Drawer,
   IconButton,
@@ -23,7 +25,7 @@ import {
 import { Close } from '@mui/icons-material';
 
 const InternalMovement: React.FC = () => {
-  const [rows, setRows] = useState<Movement[]>(initialData);
+  const [rows, setRows] = useState<Movement[]>([]);
   const [filters, setFilters] = useState({
     date: '',
     from: '',
@@ -32,10 +34,10 @@ const InternalMovement: React.FC = () => {
     createdAt: '',
     updatedAt: '',
   });
-  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<Movement | null>(null);
-  const [editingRowId, setEditingRowId] = useState<number | null>(null); // Окремий стан для редагування
+  const [editingRowId, setEditingRowId] = useState<string | null>(null); // Окремий стан для редагування
 
   const handleFilterChange = (field: string, value: string) =>
     setFilters((prev) => ({ ...prev, [field]: value }));
@@ -45,7 +47,7 @@ const InternalMovement: React.FC = () => {
     setDrawerOpen(true);
   };
 
-  const handleEditClick = (rowId: number) => {
+  const handleEditClick = (rowId: string) => {
     setEditingRowId(rowId === editingRowId ? null : rowId); // Перемикаємо стан редагування для вибраного рядка
   };
 
@@ -63,11 +65,52 @@ const InternalMovement: React.FC = () => {
     setDrawerOpen(false);
   };
 
+  const getAllMovements = async (): Promise<Movement[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'movements'));
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id, // Firestore генерує рядковий ID
+        ...doc.data(),
+      })) as Movement[];
+    } catch (error) {
+      console.error('Помилка при отриманні даних:', error);
+      return [];
+    }
+  };
+
+  // Функція для форматування дати
+  const formatTimestamp = (timestamp: Timestamp | string | undefined): string => {
+    if (!timestamp) return '—'; // Якщо значення немає
+
+    if (typeof timestamp === 'string') return timestamp; // Якщо це вже рядок, повертаємо без змін
+
+    return new Date(timestamp.seconds * 1000).toLocaleString(); // Якщо це Firestore Timestamp
+  };
+
+  useEffect(() => {
+    const fetchMovements = async () => {
+      const data = await getAllMovements();
+      console.log('Отримані дані:', data);
+      const formattedData = data.map((item) => ({
+        ...item,
+        createdAt: formatTimestamp(item.createdAt as Timestamp | string),
+        updatedAt: formatTimestamp(item.updatedAt as Timestamp | string),
+      }));
+
+      setRows(formattedData);
+    };
+
+    fetchMovements();
+  }, []);
+
+  console.log('selectedRowId ---------', selectedRowId);
+
   return (
     <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <MovementToolbar
         selectedRowId={selectedRowId}
-        handleEditClick={() => handleEditClick(selectedRowId ?? 0)} // Вибираємо поточний рядок для редагування
+        // handleEditClick={() => handleEditClick(selectedRowId ?? 0)} // Вибираємо поточний рядок для редагування
+        handleEditClick={() => handleEditClick(selectedRowId ?? '')}
       />
       <MovementTable
         rows={filteredRows}

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { db } from '../../../firebaseConfig'; // Шлях до твого firebase.ts
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import {
   TableRow,
   TableCell,
@@ -15,18 +17,23 @@ import {
   TableBody,
   Button,
   Drawer,
+  Tooltip,
+  CircularProgress,
 } from '@mui/material';
 
 import { Close, Visibility, Edit, CheckCircle } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
+import { Detail } from '../../types/types';
 
 interface Props {
   onSave: () => void;
+  cleanRows: () => void;
 }
 
-const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
+const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
   const userFromRedux = useSelector((state: RootState) => state.auth.user);
+  const [loading, setLoading] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isCreating, setIsCreating] = useState<boolean>(true);
@@ -38,13 +45,7 @@ const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
   const [createdAt, setCreatedAt] = useState<string>('');
   const [updatedAt, setUpdatedAt] = useState<string>('');
 
-  const [drawerQuantity, setDrawerQuantity] = useState<number | ''>('');
-  const [drawerWeight, setDrawerWeight] = useState<number | ''>('');
-  const [drawerProduct, setDrawerProduct] = useState<string>('');
-  const [drawerCategory, setDrawerCategory] = useState<string>('');
-  const [drawerPrice, setDrawerPrice] = useState<number | ''>('');
-  const [drawerTotalPrice, setDrawerTotalPrice] = useState<number | ''>('');
-  const [drawerComment, setDrawerComment] = useState<string>('');
+  const [drawersDetails, setDrawersDetails] = useState<Detail[]>([]);
 
   const today = new Date();
   const formattedDate = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1)
@@ -59,41 +60,57 @@ const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
     setUpdatedAt(formattedDate);
   }, [userFromRedux]);
 
-  const handleSaveChanges = () => {
-    // Заглушка для збереження (можна реалізувати пізніше)
-    console.log({
-      id: Date.now(),
-      date: date,
-      from: from,
-      to: to,
-      who: who,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      details: [
-        {
-          quantity: drawerQuantity,
-          weight: drawerWeight,
-          product: drawerProduct,
-          category: drawerCategory,
-          price: drawerPrice,
-          totalPrice: drawerTotalPrice,
-          comment: drawerComment,
-        },
-      ],
-    });
+  const handleSaveChanges = async () => {
+    setLoading(true); // Увімкнення прелоадера
 
-    setIsCreating(false);
-    setDrawerOpen(false);
-    onSave();
+    // Фільтрація порожніх деталей
+    const filteredDetails = drawersDetails.filter(
+      (detail) =>
+        detail.quantity ||
+        detail.weight ||
+        detail.product ||
+        detail.category ||
+        detail.price ||
+        detail.comment
+    );
+
+    // Формування об'єкта переміщення
+    const movementData = {
+      id: Date.now(),
+      date,
+      from,
+      to,
+      who,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      details: filteredDetails,
+    };
+
+    try {
+      // Збереження в Firestore
+      const docRef = await addDoc(collection(db, 'movements'), movementData);
+      console.log('Документ додано з ID:', docRef.id);
+
+      // Закриття діалогу та очищення через 1.5сек щоб було видно завантаження
+      setTimeout(() => {
+        setDrawerOpen(false);
+        setIsCreating(false);
+        onSave();
+        cleanRows();
+        setLoading(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Помилка при збереженні в Firestore:', error);
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    if (drawerPrice && drawerWeight) {
-      setDrawerTotalPrice(drawerPrice * drawerWeight);
-    } else {
-      setDrawerTotalPrice('');
-    }
-  }, [drawerPrice, drawerWeight]);
+  const addNewRow = () => {
+    setDrawersDetails([
+      ...drawersDetails,
+      { product: '', category: '', quantity: 0, weight: 0, price: 0, totalPrice: 0, comment: '' },
+    ]);
+  };
 
   const handleRowClick = () => {
     setDrawerOpen(true);
@@ -135,12 +152,10 @@ const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
             <MenuItem value="Іванівка">Іванівка</MenuItem>
             <MenuItem value="Колодисте">Колодисте</MenuItem>
             <MenuItem value="Цех забою">Цех забою</MenuItem>
-            {/*<MenuItem value="Цех утилізації відходів">Цех утилізації відходів</MenuItem>*/}
             <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
             <MenuItem value="Склад готової продукції (морозильна камера)">
               Склад готової продукції (морозильна камера)
             </MenuItem>
-            {/*<MenuItem value="Вибуття">Вибуття</MenuItem>*/}
           </Select>
         </FormControl>
       </TableCell>
@@ -198,12 +213,53 @@ const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
             </IconButton>
           </Box>
           <TableContainer>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Box sx={{ mt: 2 }}>
+                <Button onClick={addNewRow} variant="outlined" color="primary">
+                  Додати рядок
+                </Button>
+              </Box>
+              <Box sx={{ mt: 2 }}>
+                <Tooltip
+                  title={
+                    !date || !from || !to
+                      ? "Заповніть всі обов'язкові поля: Дата, Звідки, Куди"
+                      : ''
+                  }
+                  disableHoverListener={!!date && !!from && !!to} // Приховуємо tooltip, якщо все заповнено
+                >
+                  <span>
+                    {/* Обгортка, щоб Tooltip працював з disabled кнопками */}
+                    <Button
+                      onClick={handleSaveChanges}
+                      variant="contained"
+                      color="primary"
+                      disabled={!date || !from || !to}
+                      sx={{ width: '148px', height: '40px' }}
+                    >
+                      {loading ? (
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                          height="50vh"
+                        >
+                          <CircularProgress size={25} sx={{ color: 'white' }} />
+                        </Box>
+                      ) : (
+                        <span style={{ fontWeight: 'normal' }}>Зберегти зміни</span>
+                      )}
+                    </Button>
+                  </span>
+                </Tooltip>
+              </Box>
+            </div>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>Кількість</TableCell>
-                  <TableCell>Вага</TableCell>
-                  <TableCell>Продукт</TableCell>
+                  <TableCell>Вага*</TableCell>
+                  <TableCell>Продукт*</TableCell>
                   <TableCell>Категорія</TableCell>
                   <TableCell>Ціна</TableCell>
                   <TableCell>Вартість</TableCell>
@@ -211,118 +267,138 @@ const CreateMovementRow: React.FC<Props> = ({ onSave }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <TextField
-                      value={drawerQuantity}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setDrawerQuantity(value === '' ? '' : parseInt(value) || 0);
-                      }}
-                      size="small"
-                      sx={{ width: '70px' }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={drawerWeight}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setDrawerWeight(value === '' ? '' : parseInt(value) || 0);
-                      }}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <FormControl>
-                      <Select
-                        value={drawerProduct}
-                        onChange={(e) => setDrawerProduct(e.target.value)}
-                        size="small"
-                        sx={{ width: '200px' }}
-                      >
-                        <MenuItem value="Тварина">Тварина</MenuItem>
-                        <MenuItem value="Кістки">Кістки</MenuItem>
-                        <MenuItem value="Відходи на утилізацію">Відходи на утилізацію</MenuItem>
-                        <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
-                        <MenuItem value="Ділове">Ділове</MenuItem>
-                        <MenuItem value="С/Б">С/Б</MenuItem>
-                        <MenuItem value="Голова">Голова</MenuItem>
-                        <MenuItem value="Печінка">Печінка</MenuItem>
-                        <MenuItem value="СМ">СМ</MenuItem>
-                        <MenuItem value="Шкварки">Шкварки</MenuItem>
-                        <MenuItem value="Шпикачки">Шпикачки</MenuItem>
-                        <MenuItem value="Паштет">Паштет</MenuItem>
-                        <MenuItem value="Ковбаски гриль">Ковбаски гриль</MenuItem>
-                        <MenuItem value="Вуха">Вуха</MenuItem>
-                        <MenuItem value="Ковбаса">Ковбаса</MenuItem>
-                        <MenuItem value="Ребро до пива">Ребро до пива</MenuItem>
-                        <MenuItem value="Копчена ковбаса">Копчена ковбаса</MenuItem>
-                        <MenuItem value="Копчене м'ясо">Копчене м&apos;ясо</MenuItem>
-                        <MenuItem value="Млинці з сиром">Млинці з сиром</MenuItem>
-                        <MenuItem value="Млинці з м'ясом">Млинці з м&apos;ясом</MenuItem>
-                        <MenuItem value="Чебуреки">Чебуреки</MenuItem>
-                        <MenuItem value="Пельмені">Пельмені</MenuItem>
-                        <MenuItem value="Шкварки 5л">Шкварки 5л</MenuItem>
-                        <MenuItem value="Сало кускове">Сало кускове</MenuItem>
-                        <MenuItem value="Сало кручене">Сало кручене</MenuItem>
-                        <MenuItem value="Сало на шкірі">Сало на шкірі</MenuItem>
-                        <MenuItem value="Домашня ковбаса">Домашня ковбаса</MenuItem>
-                        <MenuItem value="Копчений биток">Копчений биток</MenuItem>
-                        <MenuItem value="Копчене ребро">Копчене ребро</MenuItem>
-                        <MenuItem value="Язик">Язик</MenuItem>
-                        <MenuItem value="Голяшки">Голяшки</MenuItem>
-                        <MenuItem value="Дрогобицька ковбаса">Дрогобицька ковбаса</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </TableCell>
-                  <TableCell>
-                    <FormControl>
-                      <Select
-                        value={drawerCategory}
+                {drawersDetails.map((detail, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <TextField
+                        value={detail.quantity}
                         onChange={(e) => {
-                          setDrawerCategory(e.target.value);
+                          const updatedDetails = [...drawersDetails];
+                          updatedDetails[index].quantity = parseInt(e.target.value) || 0;
+                          setDrawersDetails(updatedDetails);
                         }}
                         size="small"
-                        sx={{ width: '100px' }}
-                      >
-                        <MenuItem value="Category 1">Category 1</MenuItem>
-                        <MenuItem value="Category 2">Category 2</MenuItem>
-                        <MenuItem value="Category 3">Category 3</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={drawerPrice}
-                      onChange={(e) => setDrawerPrice(Number(e.target.value) || '')}
-                      fullWidth
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField value={drawerTotalPrice} fullWidth size="small" disabled />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={drawerComment}
-                      onChange={(e) => {
-                        setDrawerComment(e.target.value);
-                      }}
-                      fullWidth
-                      size="small"
-                    />
-                  </TableCell>
-                </TableRow>
+                        sx={{ width: '55px' }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={detail.weight}
+                        onChange={(e) => {
+                          const updatedDetails = [...drawersDetails];
+                          if (updatedDetails[index]) {
+                            updatedDetails[index].weight = parseInt(e.target.value) || 0;
+                            updatedDetails[index].totalPrice =
+                              (updatedDetails[index].weight || 0) *
+                              (updatedDetails[index].price || 0);
+                            setDrawersDetails(updatedDetails);
+                          }
+                        }}
+                        size="small"
+                        sx={{ width: '65px' }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <FormControl>
+                        <Select
+                          value={detail.product}
+                          onChange={(e) => {
+                            const updatedDetails = [...drawersDetails];
+                            updatedDetails[index].product = e.target.value;
+                            setDrawersDetails(updatedDetails);
+                          }}
+                          size="small"
+                          sx={{ width: '200px' }}
+                        >
+                          <MenuItem value="Тварина">Тварина</MenuItem>
+                          <MenuItem value="Кістки">Кістки</MenuItem>
+                          <MenuItem value="Відходи на утилізацію">Відходи на утилізацію</MenuItem>
+                          <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
+                          <MenuItem value="Ділове">Ділове</MenuItem>
+                          <MenuItem value="С/Б">С/Б</MenuItem>
+                          <MenuItem value="Голова">Голова</MenuItem>
+                          <MenuItem value="Печінка">Печінка</MenuItem>
+                          <MenuItem value="СМ">СМ</MenuItem>
+                          <MenuItem value="Шкварки">Шкварки</MenuItem>
+                          <MenuItem value="Шпикачки">Шпикачки</MenuItem>
+                          <MenuItem value="Паштет">Паштет</MenuItem>
+                          <MenuItem value="Ковбаски гриль">Ковбаски гриль</MenuItem>
+                          <MenuItem value="Вуха">Вуха</MenuItem>
+                          <MenuItem value="Ковбаса">Ковбаса</MenuItem>
+                          <MenuItem value="Ребро до пива">Ребро до пива</MenuItem>
+                          <MenuItem value="Копчена ковбаса">Копчена ковбаса</MenuItem>
+                          <MenuItem value="Копчене м'ясо">Копчене м&apos;ясо</MenuItem>
+                          <MenuItem value="Млинці з сиром">Млинці з сиром</MenuItem>
+                          <MenuItem value="Млинці з м'ясом">Млинці з м&apos;ясом</MenuItem>
+                          <MenuItem value="Чебуреки">Чебуреки</MenuItem>
+                          <MenuItem value="Пельмені">Пельмені</MenuItem>
+                          <MenuItem value="Шкварки 5л">Шкварки 5л</MenuItem>
+                          <MenuItem value="Сало кускове">Сало кускове</MenuItem>
+                          <MenuItem value="Сало кручене">Сало кручене</MenuItem>
+                          <MenuItem value="Сало на шкірі">Сало на шкірі</MenuItem>
+                          <MenuItem value="Домашня ковбаса">Домашня ковбаса</MenuItem>
+                          <MenuItem value="Копчений биток">Копчений биток</MenuItem>
+                          <MenuItem value="Копчене ребро">Копчене ребро</MenuItem>
+                          <MenuItem value="Язик">Язик</MenuItem>
+                          <MenuItem value="Голяшки">Голяшки</MenuItem>
+                          <MenuItem value="Дрогобицька ковбаса">Дрогобицька ковбаса</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <FormControl>
+                        <Select
+                          value={detail.category}
+                          onChange={(e) => {
+                            const updatedDetails = [...drawersDetails];
+                            updatedDetails[index].category = e.target.value;
+                            setDrawersDetails(updatedDetails);
+                          }}
+                          size="small"
+                          sx={{ width: '100px' }}
+                        >
+                          <MenuItem value="Category 1">Category 1</MenuItem>
+                          <MenuItem value="Category 2">Category 2</MenuItem>
+                          <MenuItem value="Category 3">Category 3</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={detail.price}
+                        onChange={(e) => {
+                          const updatedDetails = [...drawersDetails];
+                          const detail = updatedDetails[index];
+
+                          if (detail) {
+                            detail.price = Number(e.target.value) || 0;
+                            detail.totalPrice = (detail.weight || 0) * detail.price;
+                            setDrawersDetails(updatedDetails);
+                          }
+                        }}
+                        size="small"
+                        sx={{ width: '55px' }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField value={detail.totalPrice} fullWidth size="small" disabled />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={detail.comment}
+                        onChange={(e) => {
+                          const updatedDetails = [...drawersDetails];
+                          updatedDetails[index].comment = e.target.value;
+                          setDrawersDetails(updatedDetails);
+                        }}
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
-
-          <Box sx={{ mt: 2 }}>
-            <Button onClick={handleSaveChanges} variant="contained" color="primary">
-              Зберегти зміни
-            </Button>
-          </Box>
         </Box>
       </Drawer>
     </TableRow>

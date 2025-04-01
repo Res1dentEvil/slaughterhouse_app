@@ -14,12 +14,12 @@ import { Movement } from '../../types/types';
 
 interface Props {
   row: Movement;
-  selectedRowId: number | null;
-  setSelectedRowId: (id: number | null) => void;
+  selectedRowId: string | null;
+  setSelectedRowId: (id: string | null) => void;
   handleRowClick: (row: Movement) => void;
   index: number;
-  isEditingRow: (rowId: number) => boolean;
-  editingRowId: number | null;
+  isEditingRow: (rowId: string) => boolean;
+  editingRowId: string | null;
 }
 
 const MovementRow: React.FC<Props> = ({
@@ -49,6 +49,8 @@ const MovementRow: React.FC<Props> = ({
     e.stopPropagation();
   };
 
+  // console.log('row:', row.createdAt);
+
   return (
     <TableRow
       onClick={() => {
@@ -56,7 +58,7 @@ const MovementRow: React.FC<Props> = ({
       }}
       sx={{
         backgroundColor:
-          selectedRowId === row.id ? '#e0f7fa' : index % 2 === 0 ? 'white' : '#f5f5f5',
+          selectedRowId === row.id ? '#e0f7fa' : index % 2 === 0 ? '#f5f5f5' : 'white',
         cursor: 'pointer',
       }}
     >

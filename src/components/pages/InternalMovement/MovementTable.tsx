@@ -17,12 +17,12 @@ import MovementRow from './MovementRow';
 interface Props {
   rows: Movement[];
   filters: Record<string, string>;
-  selectedRowId: number | null;
-  setSelectedRowId: (id: number | null) => void;
+  selectedRowId: string | null;
+  setSelectedRowId: (id: string | null) => void;
   handleFilterChange: (field: string, value: string) => void;
   handleRowClick: (row: Movement) => void;
-  isEditingRow: (rowId: number) => boolean; // Додано новий проп
-  editingRowId: number | null;
+  isEditingRow: (rowId: string) => boolean; // Додано новий проп
+  editingRowId: string | null;
 }
 
 const MovementTable: React.FC<Props> = ({

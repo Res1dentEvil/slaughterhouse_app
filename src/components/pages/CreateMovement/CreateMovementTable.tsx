@@ -26,9 +26,8 @@ const CreateMovementTable: React.FC<Props> = ({ rows }) => {
     >
       <Table>
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ background: '#EDEDED' }}>
             <TableCell />
-
             <TableCell>Дата</TableCell>
             <TableCell>Звідки</TableCell>
             <TableCell>Куди</TableCell>

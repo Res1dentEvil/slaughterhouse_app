@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                             Створити переміщення
                           </Link>
                           <Link to="/internal-movement" className="dropdown-item">
-                            Внутрішнє переміщення
+                            Переглянути переміщення
                           </Link>
                           <Link to="/departure" className="dropdown-item">
                             Вибуття
