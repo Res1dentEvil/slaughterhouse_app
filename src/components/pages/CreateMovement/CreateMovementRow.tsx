@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../../firebaseConfig'; // Шлях до твого firebase.ts
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import {
   TableRow,
   TableCell,
@@ -74,21 +74,20 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
         detail.comment
     );
 
-    // Формування об'єкта переміщення
-    const movementData = {
-      id: Date.now(),
-      date,
-      from,
-      to,
-      who,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      details: filteredDetails,
-    };
-
     try {
       // Збереження в Firestore
-      const docRef = await addDoc(collection(db, 'movements'), movementData);
+      const docRef = await addDoc(collection(db, 'movements'), {
+        date,
+        from,
+        to,
+        who,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        details: filteredDetails,
+      });
+
+      // Оновлюємо документ, додаючи правильний `id` відповідно Firestore
+      await updateDoc(docRef, { id: docRef.id });
       console.log('Документ додано з ID:', docRef.id);
 
       // Закриття діалогу та очищення через 1.5сек щоб було видно завантаження
@@ -357,9 +356,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                           size="small"
                           sx={{ width: '100px' }}
                         >
-                          <MenuItem value="Category 1">Category 1</MenuItem>
-                          <MenuItem value="Category 2">Category 2</MenuItem>
-                          <MenuItem value="Category 3">Category 3</MenuItem>
+                          <MenuItem value="1">1</MenuItem>
+                          <MenuItem value="2">2</MenuItem>
                         </Select>
                       </FormControl>
                     </TableCell>

@@ -16,34 +16,41 @@ import MovementRow from './MovementRow';
 
 interface Props {
   rows: Movement[];
+  setRows: (rows: Movement[]) => void;
   filters: Record<string, string>;
   selectedRowId: string | null;
   setSelectedRowId: (id: string | null) => void;
   handleFilterChange: (field: string, value: string) => void;
-  handleRowClick: (row: Movement) => void;
   isEditingRow: (rowId: string) => boolean; // Додано новий проп
   editingRowId: string | null;
+  setEditingRowId: (id: string | null) => void;
 }
 
 const MovementTable: React.FC<Props> = ({
   rows,
+  setRows,
   filters,
   selectedRowId,
   setSelectedRowId,
   handleFilterChange,
-  handleRowClick,
   isEditingRow,
   editingRowId,
+  setEditingRowId,
 }) => {
   return (
     <TableContainer
       component={Paper}
-      sx={{ width: '100%', padding: '0 20px', overflow: 'visible' }}
+      sx={{
+        width: '100%',
+        padding: '0 20px',
+        overflow: 'visible',
+        boxShadow: 'none',
+      }}
     >
       {/*<Table stickyHeader>*/}
       <Table>
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ background: '#EDEDED' }}>
             <TableCell />
             <TableCell></TableCell>
             <TableCell>Дата</TableCell>
@@ -78,12 +85,14 @@ const MovementTable: React.FC<Props> = ({
             <MovementRow
               key={row.id}
               row={row}
+              rows={rows}
+              setRows={setRows}
               selectedRowId={selectedRowId}
               setSelectedRowId={setSelectedRowId}
-              handleRowClick={handleRowClick}
               index={index}
               isEditingRow={isEditingRow} // Передаємо проп isEditingRow
               editingRowId={editingRowId} // Передаємо для блокування вибору інших рядків
+              setEditingRowId={setEditingRowId}
             />
           ))}
         </TableBody>

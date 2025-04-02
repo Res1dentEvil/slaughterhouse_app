@@ -42,11 +42,6 @@ const InternalMovement: React.FC = () => {
   const handleFilterChange = (field: string, value: string) =>
     setFilters((prev) => ({ ...prev, [field]: value }));
 
-  const handleRowClick = (row: Movement) => {
-    setSelectedRow(row);
-    setDrawerOpen(true);
-  };
-
   const handleEditClick = (rowId: string) => {
     setEditingRowId(rowId === editingRowId ? null : rowId); // Перемикаємо стан редагування для вибраного рядка
   };
@@ -103,7 +98,7 @@ const InternalMovement: React.FC = () => {
     fetchMovements();
   }, []);
 
-  console.log('selectedRowId ---------', selectedRowId);
+  // console.log('selectedRowId ---------', selectedRowId);
 
   return (
     <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -111,123 +106,19 @@ const InternalMovement: React.FC = () => {
         selectedRowId={selectedRowId}
         // handleEditClick={() => handleEditClick(selectedRowId ?? 0)} // Вибираємо поточний рядок для редагування
         handleEditClick={() => handleEditClick(selectedRowId ?? '')}
+        editingRowId={editingRowId}
       />
       <MovementTable
         rows={filteredRows}
+        setRows={setRows}
         filters={filters}
         selectedRowId={selectedRowId}
         setSelectedRowId={setSelectedRowId}
         handleFilterChange={handleFilterChange}
-        handleRowClick={handleRowClick}
         isEditingRow={(rowId) => editingRowId === rowId} // Перевіряємо, чи цей рядок редагується
         editingRowId={editingRowId} // Передаємо для блокування вибору інших рядків
+        setEditingRowId={setEditingRowId}
       />
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        sx={{ width: '40%' }}
-      >
-        {selectedRow && (
-          <Box sx={{ width: '40vw', p: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <h3>Деталі переміщення</h3>
-              <IconButton onClick={() => setDrawerOpen(false)}>
-                <Close />
-              </IconButton>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Кількість</TableCell>
-                    <TableCell>Вага</TableCell>
-                    <TableCell>Продукт</TableCell>
-                    <TableCell>Категорія</TableCell>
-                    <TableCell>Ціна</TableCell>
-                    <TableCell>Вартість</TableCell>
-                    <TableCell>Коментар</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {selectedRow.details.map((detail, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField defaultValue={detail.quantity} fullWidth size="small" />
-                        ) : (
-                          detail.quantity
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField defaultValue={detail.weight} fullWidth size="small" />
-                        ) : (
-                          detail.weight
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField defaultValue={detail.product} fullWidth size="small" />
-                        ) : (
-                          detail.product
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <FormControl fullWidth>
-                            <InputLabel>Категорія</InputLabel>
-                            <Select defaultValue={detail.category || ''} size="small">
-                              <MenuItem value="Category 1">Category 1</MenuItem>
-                              <MenuItem value="Category 2">Category 2</MenuItem>
-                              <MenuItem value="Category 3">Category 3</MenuItem>
-                            </Select>
-                          </FormControl>
-                        ) : (
-                          detail.category
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField defaultValue={detail.price} fullWidth size="small" />
-                        ) : (
-                          detail.price
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField
-                            defaultValue={detail.totalPrice}
-                            fullWidth
-                            size="small"
-                            disabled
-                          />
-                        ) : (
-                          detail.totalPrice
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
-                          <TextField defaultValue={detail.comment} fullWidth size="small" />
-                        ) : (
-                          detail.comment
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            {editingRowId && (
-              <Box sx={{ mt: 2 }}>
-                <Button onClick={handleSaveChanges} variant="contained" color="primary">
-                  Зберегти зміни
-                </Button>
-              </Box>
-            )}
-          </Box>
-        )}
-      </Drawer>
     </Box>
   );
 };
