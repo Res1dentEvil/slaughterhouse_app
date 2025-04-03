@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Detail } from '../../types/types';
-import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import {
   TableRow,
@@ -162,7 +162,7 @@ const MovementRow: React.FC<Props> = ({
             </Select>
           </FormControl>
         ) : (
-          row.from
+          <div style={{ width: '200px' }}>{row.from}</div>
         )}
       </TableCell>
       <TableCell>
@@ -184,7 +184,7 @@ const MovementRow: React.FC<Props> = ({
             </Select>
           </FormControl>
         ) : (
-          row.to
+          <div style={{ width: '200px' }}>{row.to}</div>
         )}
       </TableCell>
       <TableCell>{row.who}</TableCell>
@@ -232,7 +232,7 @@ const MovementRow: React.FC<Props> = ({
                 </TableHead>
                 <TableBody>
                   {editedRow.details.map((detail, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={index} sx={{}}>
                       <TableCell>
                         {editingRowId ? (
                           <TextField
@@ -261,6 +261,7 @@ const MovementRow: React.FC<Props> = ({
                             }}
                             fullWidth
                             size="small"
+                            sx={{ width: '70px' }}
                           />
                         ) : (
                           detail.weight
@@ -273,6 +274,7 @@ const MovementRow: React.FC<Props> = ({
                               value={detail.product || ''}
                               onChange={(e) => handleDetailChange(index, 'product', e.target.value)}
                               size="small"
+                              sx={{ width: '130px' }}
                             >
                               <MenuItem value="Тварина">Тварина</MenuItem>
                               <MenuItem value="Кістки">Кістки</MenuItem>
@@ -323,6 +325,7 @@ const MovementRow: React.FC<Props> = ({
                                 handleDetailChange(index, 'category', e.target.value)
                               }
                               size="small"
+                              sx={{ width: '60px' }}
                             >
                               <MenuItem value="1">1</MenuItem>
                               <MenuItem value="2">2</MenuItem>
@@ -344,8 +347,8 @@ const MovementRow: React.FC<Props> = ({
                                 (detail.price ?? 0) * (detail.weight ?? 0)
                               );
                             }}
-                            fullWidth
                             size="small"
+                            sx={{ width: '60px' }}
                           />
                         ) : (
                           detail.price

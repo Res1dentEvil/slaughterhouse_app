@@ -10,6 +10,8 @@ import {
   TextField,
   Box,
   Button,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Movement } from '../../types/types';
 import MovementRow from './MovementRow';
@@ -67,11 +69,53 @@ const MovementTable: React.FC<Props> = ({
               <TableCell key={field}>
                 {field === 'status' ? (
                   <Box sx={{ height: 40 }} />
+                ) : field === 'from' ? (
+                  <Select
+                    size="small"
+                    fullWidth
+                    value={filters[field] || ''}
+                    onChange={(e) => handleFilterChange(field, e.target.value)}
+                    displayEmpty
+                    sx={{ width: '240px' }}
+                  >
+                    <MenuItem value="">Усі</MenuItem>
+                    <MenuItem value="Насташка">Насташка</MenuItem>
+                    <MenuItem value="Іванівка">Іванівка</MenuItem>
+                    <MenuItem value="Колодисте">Колодисте</MenuItem>
+                    <MenuItem value="Цех забою">Цех забою</MenuItem>
+                    <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+                    <MenuItem value="Склад готової продукції (морозильна камера)">
+                      Склад готової продукції (морозильна камера)
+                    </MenuItem>
+                  </Select>
+                ) : field === 'to' ? (
+                  <Select
+                    size="small"
+                    fullWidth
+                    value={filters[field] || ''}
+                    onChange={(e) => handleFilterChange(field, e.target.value)}
+                    displayEmpty
+                    sx={{ width: '240px' }}
+                  >
+                    <MenuItem value="">Усі</MenuItem>
+                    <MenuItem value="Цех забою">Цех забою</MenuItem>
+                    <MenuItem value="Цех утилізації відходів">Цех утилізації відходів</MenuItem>
+                    <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+                    <MenuItem value="Склад готової продукції (морозильна камера)">
+                      Склад готової продукції (морозильна камера)
+                    </MenuItem>
+                    <MenuItem value="Пайки">Пайки</MenuItem>
+                    <MenuItem value="Київ">Київ</MenuItem>
+                    <MenuItem value="Свєта">Свєта</MenuItem>
+                    <MenuItem value="Кінцевий споживач">Кінцевий споживач</MenuItem>
+                    <MenuItem value="Столова">Столова</MenuItem>
+                    <MenuItem value="Благодійно">Благодійно</MenuItem>
+                  </Select>
                 ) : (
                   <TextField
                     size="small"
                     fullWidth
-                    value={filters[field]}
+                    value={filters[field] || ''}
                     onChange={(e) => handleFilterChange(field, e.target.value)}
                   />
                 )}

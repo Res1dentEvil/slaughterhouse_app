@@ -174,7 +174,12 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
             <MenuItem value="Склад готової продукції (морозильна камера)">
               Склад готової продукції (морозильна камера)
             </MenuItem>
-            <MenuItem value="Вибуття">Вибуття</MenuItem>
+            <MenuItem value="Пайки">Пайки</MenuItem>
+            <MenuItem value="Київ">Київ</MenuItem>
+            <MenuItem value="Свєта">Свєта</MenuItem>
+            <MenuItem value="Кінцевий споживач">Кінцевий споживач</MenuItem>
+            <MenuItem value="Столова">Столова</MenuItem>
+            <MenuItem value="Благодійно">Благодійно</MenuItem>
           </Select>
         </FormControl>
       </TableCell>
