@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Movement } from '../../types/types';
+import { Movement } from '../../../types/types';
 import MovementToolbar from './MovementToolbar';
 import MovementTable from './MovementTable';
 import { collection, getDocs } from 'firebase/firestore';

@@ -12,14 +12,14 @@ import { Container, CircularProgress, Box } from '@mui/material';
 
 import HomePage from '../pages/HomePage/HomePage';
 import Departure from '../pages/Departure/Departure';
-import Report1 from '../pages/Report1/Report1';
-import Report2 from '../pages/Report2/Report2';
+import Report2 from '../pages/Report1/Report1';
 import Report3 from '../pages/Report3/Report3';
 import AdminPanel from '../pages/AdminPanel/AdminPanel';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.scss';
 import InternalMovement from '../pages/InternalMovement/InternalMovement';
 import CreateMovement from '../pages/CreateMovement/CreateMovement';
+import FridgeMovementTable from '../pages/Report1/Report1';
 
 interface User {
   uid: string;
@@ -101,13 +101,10 @@ const App: React.FC = () => {
               path="/departure"
               element={user || userFromRedux ? <Departure /> : <Navigate to="/" />}
             />
+
             <Route
               path="/report1"
-              element={user || userFromRedux ? <Report1 /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/report2"
-              element={user || userFromRedux ? <Report2 /> : <Navigate to="/" />}
+              element={user || userFromRedux ? <FridgeMovementTable /> : <Navigate to="/" />}
             />
             <Route
               path="/report3"

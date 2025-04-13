@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Detail } from '../../types/types';
+import { Detail } from '../../../types/types';
 import { doc, updateDoc, serverTimestamp, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import {
@@ -22,7 +22,7 @@ import {
   Alert,
 } from '@mui/material';
 import { Close, Visibility } from '@mui/icons-material';
-import { Movement } from '../../types/types';
+import { Movement } from '../../../types/types';
 import firebase from 'firebase/compat';
 // import Timestamp = firebase.firestore.Timestamp;
 
@@ -54,6 +54,9 @@ const MovementRow: React.FC<Props> = ({
   const [selectedRow, setSelectedRow] = useState<Movement | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
+  const [weights, setWeights] = useState<string[]>([]);
+  const [prices, setPrices] = useState<string[]>([]);
+
   // Функція для обробки зміни текстових полів
   const handleTextFieldChange = (field: keyof Movement, value: string) => {
     setEditedRow((prevRow) => ({
@@ -62,7 +65,11 @@ const MovementRow: React.FC<Props> = ({
     }));
   };
 
-  const handleDetailChange = (index: number, field: keyof Detail, value: string | number) => {
+  const handleDetailChange = (
+    index: number,
+    field: keyof Detail,
+    value: string | number | undefined
+  ) => {
     setEditedRow((prev) => ({
       ...prev,
       details: prev.details.map((detail, i) =>
@@ -155,7 +162,8 @@ const MovementRow: React.FC<Props> = ({
               <MenuItem value="Іванівка">Іванівка</MenuItem>
               <MenuItem value="Колодисте">Колодисте</MenuItem>
               <MenuItem value="Цех забою">Цех забою</MenuItem>
-              <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+              <MenuItem value="Холодильник">Холодильник</MenuItem>
+              <MenuItem value="Переробка">Переробка</MenuItem>
               <MenuItem value="Склад готової продукції (морозильна камера)">
                 Склад готової продукції (морозильна камера)
               </MenuItem>
@@ -176,11 +184,17 @@ const MovementRow: React.FC<Props> = ({
             >
               <MenuItem value="Цех забою">Цех забою</MenuItem>
               <MenuItem value="Цех утилізації відходів">Цех утилізації відходів</MenuItem>
-              <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+              <MenuItem value="Холодильник">Холодильник</MenuItem>
+              <MenuItem value="Переробка">Переробка</MenuItem>
               <MenuItem value="Склад готової продукції (морозильна камера)">
                 Склад готової продукції (морозильна камера)
               </MenuItem>
-              <MenuItem value="Вибуття">Вибуття</MenuItem>
+              <MenuItem value="Пайки">Пайки</MenuItem>
+              <MenuItem value="Київ">Київ</MenuItem>
+              <MenuItem value="Свєта">Свєта</MenuItem>
+              <MenuItem value="Кінцевий споживач">Кінцевий споживач</MenuItem>
+              <MenuItem value="Столова">Столова</MenuItem>
+              <MenuItem value="Благодійно">Благодійно</MenuItem>
             </Select>
           </FormControl>
         ) : (
@@ -222,8 +236,8 @@ const MovementRow: React.FC<Props> = ({
                 <TableHead>
                   <TableRow>
                     <TableCell>Кількість</TableCell>
-                    <TableCell>Вага</TableCell>
                     <TableCell>Продукт</TableCell>
+                    <TableCell>Вага</TableCell>
                     <TableCell>Категорія</TableCell>
                     <TableCell>Ціна</TableCell>
                     <TableCell>Вартість</TableCell>
@@ -249,26 +263,6 @@ const MovementRow: React.FC<Props> = ({
                       </TableCell>
                       <TableCell>
                         {editingRowId ? (
-                          <TextField
-                            value={detail.weight}
-                            onChange={(e) => {
-                              handleDetailChange(index, 'weight', Number(e.target.value));
-                              handleDetailChange(
-                                index,
-                                'totalPrice',
-                                (detail.price ?? 0) * (detail.weight ?? 0)
-                              );
-                            }}
-                            fullWidth
-                            size="small"
-                            sx={{ width: '70px' }}
-                          />
-                        ) : (
-                          detail.weight
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRowId ? (
                           <FormControl fullWidth>
                             <Select
                               value={detail.product || ''}
@@ -276,17 +270,20 @@ const MovementRow: React.FC<Props> = ({
                               size="small"
                               sx={{ width: '130px' }}
                             >
-                              <MenuItem value="Тварина">Тварина</MenuItem>
-                              <MenuItem value="Кістки">Кістки</MenuItem>
-                              <MenuItem value="Відходи на утилізацію">
-                                Відходи на утилізацію
-                              </MenuItem>
-                              <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
+                              <MenuItem value="Жива вага">Жива вага</MenuItem>
                               <MenuItem value="Ділове">Ділове</MenuItem>
                               <MenuItem value="С/Б">С/Б</MenuItem>
                               <MenuItem value="Голова">Голова</MenuItem>
                               <MenuItem value="Печінка">Печінка</MenuItem>
                               <MenuItem value="СМ">СМ</MenuItem>
+                              <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
+                              <MenuItem value="Кістки">Кістки</MenuItem>
+                              <MenuItem value="Відходи на утилізацію">
+                                Відходи на утилізацію
+                              </MenuItem>
+                              <MenuItem value="Відходи маточник на утилізацію">
+                                Відходи маточник на утилізацію
+                              </MenuItem>
                               <MenuItem value="Шкварки">Шкварки</MenuItem>
                               <MenuItem value="Шпикачки">Шпикачки</MenuItem>
                               <MenuItem value="Паштет">Паштет</MenuItem>
@@ -298,6 +295,8 @@ const MovementRow: React.FC<Props> = ({
                               <MenuItem value="Копчене м'ясо">Копчене м&apos;ясо</MenuItem>
                               <MenuItem value="Млинці з сиром">Млинці з сиром</MenuItem>
                               <MenuItem value="Млинці з м'ясом">Млинці з м&apos;ясом</MenuItem>
+                              <MenuItem value="Млинці з начинкою">Млинці з начинкою</MenuItem>
+                              <MenuItem value="Млинці з маком">Млинці з маком</MenuItem>
                               <MenuItem value="Чебуреки">Чебуреки</MenuItem>
                               <MenuItem value="Пельмені">Пельмені</MenuItem>
                               <MenuItem value="Шкварки 5л">Шкварки 5л</MenuItem>
@@ -314,6 +313,40 @@ const MovementRow: React.FC<Props> = ({
                           </FormControl>
                         ) : (
                           detail.product
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingRowId ? (
+                          <TextField
+                            value={weights[index] ?? detail.weight?.toString() ?? ''}
+                            onChange={(e) => {
+                              const inputValue = e.target.value;
+                              const updatedWeights = [...weights];
+                              updatedWeights[index] = inputValue;
+                              setWeights(updatedWeights);
+                            }}
+                            onBlur={() => {
+                              const rawValue = weights[index]?.replace(',', '.');
+                              const parsedWeight = parseFloat(rawValue || '');
+
+                              if (!isNaN(parsedWeight)) {
+                                handleDetailChange(index, 'weight', parsedWeight);
+
+                                const updatedTotalPrice =
+                                  Math.round((detail.price ?? 0) * parsedWeight * 10) / 10;
+                                handleDetailChange(index, 'totalPrice', updatedTotalPrice);
+                              } else {
+                                handleDetailChange(index, 'weight', undefined);
+                                handleDetailChange(index, 'totalPrice', 0);
+                              }
+                            }}
+                            fullWidth
+                            size="small"
+                            sx={{ width: '70px' }}
+                            inputProps={{ inputMode: 'decimal' }}
+                          />
+                        ) : (
+                          detail.weight
                         )}
                       </TableCell>
                       <TableCell>
@@ -338,17 +371,31 @@ const MovementRow: React.FC<Props> = ({
                       <TableCell>
                         {editingRowId ? (
                           <TextField
-                            value={detail.price}
+                            value={prices[index] ?? detail.price?.toString() ?? ''}
                             onChange={(e) => {
-                              handleDetailChange(index, 'price', Number(e.target.value));
-                              handleDetailChange(
-                                index,
-                                'totalPrice',
-                                (detail.price ?? 0) * (detail.weight ?? 0)
-                              );
+                              const inputValue = e.target.value;
+                              const updatedPrices = [...prices];
+                              updatedPrices[index] = inputValue;
+                              setPrices(updatedPrices);
+                            }}
+                            onBlur={() => {
+                              const rawValue = prices[index]?.replace(',', '.');
+                              const parsedPrice = parseFloat(rawValue || '');
+
+                              if (!isNaN(parsedPrice)) {
+                                handleDetailChange(index, 'price', parsedPrice);
+
+                                const updatedTotalPrice =
+                                  Math.round((detail.weight ?? 0) * parsedPrice * 10) / 10;
+                                handleDetailChange(index, 'totalPrice', updatedTotalPrice);
+                              } else {
+                                handleDetailChange(index, 'price', undefined); // <- переконайся, що тип дозволяє
+                                handleDetailChange(index, 'totalPrice', 0);
+                              }
                             }}
                             size="small"
                             sx={{ width: '60px' }}
+                            inputProps={{ inputMode: 'decimal' }}
                           />
                         ) : (
                           detail.price

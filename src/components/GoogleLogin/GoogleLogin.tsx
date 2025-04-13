@@ -4,6 +4,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { Button } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google'; // Іконка Google
+import './GoogleLogin.scss';
 
 const GoogleLogin: React.FC = () => {
   const signInWithGoogle = async () => {
@@ -33,25 +34,27 @@ const GoogleLogin: React.FC = () => {
   };
 
   return (
-    <Button
-      variant="contained"
-      startIcon={<GoogleIcon />} // Додаємо іконку
-      onClick={signInWithGoogle}
-      sx={{
-        backgroundColor: '#4285F4',
-        color: 'white',
-        fontSize: '16px',
-        fontWeight: 'normal',
-        padding: '10px 20px',
-        marginTop: '250px',
-        textTransform: 'none',
-        '&:hover': {
-          backgroundColor: '#357ae8',
-        },
-      }}
-    >
-      Login with Google
-    </Button>
+    <div className="google-btn_page">
+      <Button
+        variant="contained"
+        startIcon={<GoogleIcon />} // Додаємо іконку
+        onClick={signInWithGoogle}
+        sx={{
+          backgroundColor: '#263238',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'normal',
+          padding: '10px 20px',
+          marginTop: '250px',
+          textTransform: 'none',
+          '&:hover': {
+            backgroundColor: '#354953',
+          },
+        }}
+      >
+        Login with Google
+      </Button>
+    </div>
   );
 };
 

@@ -24,7 +24,7 @@ import {
 import { Close, Visibility, Edit, CheckCircle } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
-import { Detail } from '../../types/types';
+import { Detail } from '../../../types/types';
 
 interface Props {
   onSave: () => void;
@@ -46,6 +46,9 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
   const [updatedAt, setUpdatedAt] = useState<string>('');
 
   const [drawersDetails, setDrawersDetails] = useState<Detail[]>([]);
+  // створимо окремий локальний стан для текстового введення
+  const [weights, setWeights] = useState<string[]>([]);
+  const [prices, setPrices] = useState<string[]>([]);
 
   const today = new Date();
   const formattedDate = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1)
@@ -90,14 +93,14 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
       await updateDoc(docRef, { id: docRef.id });
       console.log('Документ додано з ID:', docRef.id);
 
-      // Закриття діалогу та очищення через 1.5сек щоб було видно завантаження
+      // Закриття діалогу та очищення через 1сек щоб було видно завантаження
       setTimeout(() => {
         setDrawerOpen(false);
         setIsCreating(false);
         onSave();
         cleanRows();
         setLoading(false);
-      }, 1500);
+      }, 1000);
     } catch (error) {
       console.error('Помилка при збереженні в Firestore:', error);
       setLoading(false);
@@ -105,10 +108,7 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
   };
 
   const addNewRow = () => {
-    setDrawersDetails([
-      ...drawersDetails,
-      { product: '', category: '', quantity: 0, weight: 0, price: 0, totalPrice: 0, comment: '' },
-    ]);
+    setDrawersDetails([...drawersDetails, { product: '' }]);
   };
 
   const handleRowClick = () => {
@@ -151,7 +151,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
             <MenuItem value="Іванівка">Іванівка</MenuItem>
             <MenuItem value="Колодисте">Колодисте</MenuItem>
             <MenuItem value="Цех забою">Цех забою</MenuItem>
-            <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+            <MenuItem value="Холодильник">Холодильник</MenuItem>
+            <MenuItem value="Переробка">Переробка</MenuItem>
             <MenuItem value="Склад готової продукції (морозильна камера)">
               Склад готової продукції (морозильна камера)
             </MenuItem>
@@ -170,7 +171,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
           >
             <MenuItem value="Цех забою">Цех забою</MenuItem>
             <MenuItem value="Цех утилізації відходів">Цех утилізації відходів</MenuItem>
-            <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+            <MenuItem value="Холодильник">Холодильник</MenuItem>
+            <MenuItem value="Переробка">Переробка</MenuItem>
             <MenuItem value="Склад готової продукції (морозильна камера)">
               Склад готової продукції (морозильна камера)
             </MenuItem>
@@ -262,8 +264,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
               <TableHead>
                 <TableRow>
                   <TableCell>Кількість</TableCell>
-                  <TableCell>Вага*</TableCell>
                   <TableCell>Продукт*</TableCell>
+                  <TableCell>Вага*</TableCell>
                   <TableCell>Категорія</TableCell>
                   <TableCell>Ціна</TableCell>
                   <TableCell>Вартість</TableCell>
@@ -286,23 +288,6 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                       />
                     </TableCell>
                     <TableCell>
-                      <TextField
-                        value={detail.weight}
-                        onChange={(e) => {
-                          const updatedDetails = [...drawersDetails];
-                          if (updatedDetails[index]) {
-                            updatedDetails[index].weight = parseInt(e.target.value) || 0;
-                            updatedDetails[index].totalPrice =
-                              (updatedDetails[index].weight || 0) *
-                              (updatedDetails[index].price || 0);
-                            setDrawersDetails(updatedDetails);
-                          }
-                        }}
-                        size="small"
-                        sx={{ width: '65px' }}
-                      />
-                    </TableCell>
-                    <TableCell>
                       <FormControl>
                         <Select
                           value={detail.product}
@@ -314,15 +299,18 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                           size="small"
                           sx={{ width: '200px' }}
                         >
-                          <MenuItem value="Тварина">Тварина</MenuItem>
-                          <MenuItem value="Кістки">Кістки</MenuItem>
-                          <MenuItem value="Відходи на утилізацію">Відходи на утилізацію</MenuItem>
-                          <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
+                          <MenuItem value="Жива вага">Жива вага</MenuItem>
                           <MenuItem value="Ділове">Ділове</MenuItem>
                           <MenuItem value="С/Б">С/Б</MenuItem>
                           <MenuItem value="Голова">Голова</MenuItem>
                           <MenuItem value="Печінка">Печінка</MenuItem>
                           <MenuItem value="СМ">СМ</MenuItem>
+                          <MenuItem value="Молочні поросята">Молочні поросята</MenuItem>
+                          <MenuItem value="Кістки">Кістки</MenuItem>
+                          <MenuItem value="Відходи на утилізацію">Відходи на утилізацію</MenuItem>
+                          <MenuItem value="Відходи маточник на утилізацію">
+                            Відходи маточник на утилізацію
+                          </MenuItem>
                           <MenuItem value="Шкварки">Шкварки</MenuItem>
                           <MenuItem value="Шпикачки">Шпикачки</MenuItem>
                           <MenuItem value="Паштет">Паштет</MenuItem>
@@ -334,6 +322,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                           <MenuItem value="Копчене м'ясо">Копчене м&apos;ясо</MenuItem>
                           <MenuItem value="Млинці з сиром">Млинці з сиром</MenuItem>
                           <MenuItem value="Млинці з м'ясом">Млинці з м&apos;ясом</MenuItem>
+                          <MenuItem value="Млинці з начинкою">Млинці з начинкою</MenuItem>
+                          <MenuItem value="Млинці з маком">Млинці з маком</MenuItem>
                           <MenuItem value="Чебуреки">Чебуреки</MenuItem>
                           <MenuItem value="Пельмені">Пельмені</MenuItem>
                           <MenuItem value="Шкварки 5л">Шкварки 5л</MenuItem>
@@ -348,6 +338,38 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                           <MenuItem value="Дрогобицька ковбаса">Дрогобицька ковбаса</MenuItem>
                         </Select>
                       </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={weights[index] ?? detail.weight?.toString() ?? ''}
+                        onChange={(e) => {
+                          const inputValue = e.target.value;
+                          const updatedWeights = [...weights];
+                          updatedWeights[index] = inputValue;
+                          setWeights(updatedWeights);
+                        }}
+                        onBlur={() => {
+                          const rawValue = weights[index]?.replace(',', '.');
+                          const parsedWeight = parseFloat(rawValue || '');
+
+                          const updatedDetails = [...drawersDetails];
+                          if (updatedDetails[index]) {
+                            updatedDetails[index].weight = isNaN(parsedWeight)
+                              ? undefined
+                              : parsedWeight;
+                            updatedDetails[index].totalPrice = parseFloat(
+                              (
+                                (updatedDetails[index].weight || 0) *
+                                (updatedDetails[index].price || 0)
+                              ).toFixed(1)
+                            );
+                            setDrawersDetails(updatedDetails);
+                          }
+                        }}
+                        size="small"
+                        sx={{ width: '65px' }}
+                        inputProps={{ inputMode: 'decimal' }} // показує числову клавіатуру з крапкою на мобільних
+                      />
                     </TableCell>
                     <TableCell>
                       <FormControl>
@@ -368,19 +390,29 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
                     </TableCell>
                     <TableCell>
                       <TextField
-                        value={detail.price}
+                        value={prices[index] ?? detail.price?.toString() ?? ''}
                         onChange={(e) => {
+                          const inputValue = e.target.value;
+                          const updatedPrices = [...prices];
+                          updatedPrices[index] = inputValue;
+                          setPrices(updatedPrices);
+                        }}
+                        onBlur={() => {
+                          const rawValue = prices[index]?.replace(',', '.');
+                          const parsedPrice = parseFloat(rawValue || '');
+
                           const updatedDetails = [...drawersDetails];
                           const detail = updatedDetails[index];
 
                           if (detail) {
-                            detail.price = Number(e.target.value) || 0;
-                            detail.totalPrice = (detail.weight || 0) * detail.price;
+                            detail.price = isNaN(parsedPrice) ? undefined : parsedPrice;
+                            detail.totalPrice = (detail.weight || 0) * (detail.price || 0);
                             setDrawersDetails(updatedDetails);
                           }
                         }}
                         size="small"
                         sx={{ width: '55px' }}
+                        inputProps={{ inputMode: 'decimal' }}
                       />
                     </TableCell>
                     <TableCell>

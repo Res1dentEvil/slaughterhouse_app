@@ -13,7 +13,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Movement } from '../../types/types';
+import { Movement } from '../../../types/types';
 import MovementRow from './MovementRow';
 
 interface Props {
@@ -83,7 +83,8 @@ const MovementTable: React.FC<Props> = ({
                     <MenuItem value="Іванівка">Іванівка</MenuItem>
                     <MenuItem value="Колодисте">Колодисте</MenuItem>
                     <MenuItem value="Цех забою">Цех забою</MenuItem>
-                    <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+                    <MenuItem value="Холодильник">Холодильник</MenuItem>
+                    <MenuItem value="Переробка">Переробка</MenuItem>
                     <MenuItem value="Склад готової продукції (морозильна камера)">
                       Склад готової продукції (морозильна камера)
                     </MenuItem>
@@ -100,7 +101,8 @@ const MovementTable: React.FC<Props> = ({
                     <MenuItem value="">Усі</MenuItem>
                     <MenuItem value="Цех забою">Цех забою</MenuItem>
                     <MenuItem value="Цех утилізації відходів">Цех утилізації відходів</MenuItem>
-                    <MenuItem value="Холодильник і Переробка">Холодильник і Переробка</MenuItem>
+                    <MenuItem value="Холодильник">Холодильник</MenuItem>
+                    <MenuItem value="Переробка">Переробка</MenuItem>
                     <MenuItem value="Склад готової продукції (морозильна камера)">
                       Склад готової продукції (морозильна камера)
                     </MenuItem>
@@ -125,20 +127,28 @@ const MovementTable: React.FC<Props> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => (
-            <MovementRow
-              key={row.id}
-              row={row}
-              rows={rows}
-              setRows={setRows}
-              selectedRowId={selectedRowId}
-              setSelectedRowId={setSelectedRowId}
-              index={index}
-              isEditingRow={isEditingRow} // Передаємо проп isEditingRow
-              editingRowId={editingRowId} // Передаємо для блокування вибору інших рядків
-              setEditingRowId={setEditingRowId}
-            />
-          ))}
+          {[...rows]
+            .sort((a, b) => {
+              const parseDate = (str: string) => {
+                const [day, month, year] = str.split('.');
+                return new Date(+year, +month - 1, +day);
+              };
+              return parseDate(b.date).getTime() - parseDate(a.date).getTime();
+            })
+            .map((row, index) => (
+              <MovementRow
+                key={row.id}
+                row={row}
+                rows={rows}
+                setRows={setRows}
+                selectedRowId={selectedRowId}
+                setSelectedRowId={setSelectedRowId}
+                index={index}
+                isEditingRow={isEditingRow}
+                editingRowId={editingRowId}
+                setEditingRowId={setEditingRowId}
+              />
+            ))}
         </TableBody>
       </Table>
     </TableContainer>

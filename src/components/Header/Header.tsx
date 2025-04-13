@@ -14,9 +14,14 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
   const [menuOpen, setMenuOpen] = useState<{ [key: string]: boolean }>({});
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMenu = (menu: string, isOpen: boolean) => {
     setMenuOpen((prev) => ({ ...prev, [menu]: isOpen }));
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
   };
 
   return (
@@ -60,9 +65,6 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                           <Link to="/report1" className="dropdown-item">
                             Огляд залишків
                           </Link>
-                          <Link to="/report2" className="dropdown-item">
-                            Звіт 2
-                          </Link>
                           <Link to="/report3" className="dropdown-item">
                             Звіт 3
                           </Link>
@@ -89,7 +91,25 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
             </Button>
           </Box>
         )}
+        {/*<Button className="menu-toggle" onClick={toggleMobileMenu}>*/}
+        {/*  ☰*/}
+        {/*</Button>*/}
       </Toolbar>
+      {/*{isMobileMenuOpen && (*/}
+      {/*  <Box className="mobile-menu">*/}
+      {/*    {['movement', 'reports', 'admin'].map((menu) => (*/}
+      {/*      <Box key={menu} className="menu-item" onClick={() => setIsMobileMenuOpen(false)}>*/}
+      {/*        <Link to={`/${menu}`} className="menu-item-link">*/}
+      {/*          {menu === 'movement'*/}
+      {/*            ? 'Переміщення'*/}
+      {/*            : menu === 'reports'*/}
+      {/*            ? 'Звіти'*/}
+      {/*            : 'Панель Адміністратора'}*/}
+      {/*        </Link>*/}
+      {/*      </Box>*/}
+      {/*    ))}*/}
+      {/*  </Box>*/}
+      {/*)}*/}
     </AppBar>
   );
 };
