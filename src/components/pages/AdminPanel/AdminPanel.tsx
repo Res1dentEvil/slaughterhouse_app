@@ -84,7 +84,7 @@ const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     if (currentUser && currentUser!.role === 'admin') {
-      // fetchUsers();
+      fetchUsers();
     }
   }, [currentUser]);
 

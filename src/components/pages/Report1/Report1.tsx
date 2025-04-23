@@ -102,8 +102,12 @@ const FridgeMovements: React.FC = () => {
         const { product, weight = 0 } = d;
 
         // Особливий випадок: Голяшки вибувають з Холодильника
-        if (location === 'Холодильник' && isDeparture && product === 'Голяшки') {
-          // Віднімаємо вагу Голяшок від "Ділове"
+        if (
+          location === 'Холодильник' &&
+          isDeparture &&
+          ['Голяшки', 'Сало кускове', 'Сало на шкірі'].includes(product)
+        ) {
+          // Віднімаємо вагу певних продуктів від "Ділове"
           const targetProduct = 'Ділове';
           if (onlyInterested && !INTERESTED_PRODUCTS.includes(targetProduct)) return;
 
@@ -125,9 +129,33 @@ const FridgeMovements: React.FC = () => {
             stats.outgoing += weight;
           }
 
-          return; // Не додаємо самі "Голяшки" в таблицю
+          return; // Не додаємо сам продукт в таблицю
         }
+        // Особливий випадок: Язик вибуває з Холодильника => знімаємо з "Голова"
+        if (location === 'Холодильник' && isDeparture && product === 'Язик') {
+          const targetProduct = 'Голова';
+          if (onlyInterested && !INTERESTED_PRODUCTS.includes(targetProduct)) return;
 
+          if (!map.has(targetProduct)) {
+            map.set(targetProduct, {
+              product: targetProduct,
+              opening: 0,
+              incoming: 0,
+              outgoing: 0,
+              closing: 0,
+            });
+          }
+
+          const stats = map.get(targetProduct)!;
+
+          if (isBeforePeriod) {
+            stats.opening -= weight;
+          } else if (isInPeriod) {
+            stats.outgoing += weight;
+          }
+
+          return; // Не додаємо "Язик" у таблицю
+        }
         // Стандартна обробка
         if (onlyInterested && !INTERESTED_PRODUCTS.includes(product)) return;
 

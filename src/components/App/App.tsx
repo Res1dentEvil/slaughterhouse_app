@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '../../firebaseConfig';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,13 +13,14 @@ import { Container, CircularProgress, Box } from '@mui/material';
 import HomePage from '../pages/HomePage/HomePage';
 import Departure from '../pages/Departure/Departure';
 import Report2 from '../pages/Report1/Report1';
-import Report3 from '../pages/Report3/Report3';
+import DailyMovementTable from '../pages/Report3/DailyMovementTable';
 import AdminPanel from '../pages/AdminPanel/AdminPanel';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.scss';
 import InternalMovement from '../pages/InternalMovement/InternalMovement';
 import CreateMovement from '../pages/CreateMovement/CreateMovement';
 import FridgeMovementTable from '../pages/Report1/Report1';
+import ProtectedRoute from './ProtectedRoute';
 
 interface User {
   uid: string;
@@ -57,7 +58,7 @@ const App: React.FC = () => {
           );
         }
       }
-      setLoading(false); // Завантаження завершено
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -84,36 +85,87 @@ const App: React.FC = () => {
           </Box>
         ) : (
           <Routes>
-            <Route path="/" element={user || userFromRedux ? <HomePage /> : <GoogleLogin />} />
-            {/*<Route*/}
-            {/*  path="/internal-movement"*/}
-            {/*  element={user || userFromRedux ? <CreateMovement /> : <Navigate to="/" />}*/}
-            {/*/>*/}
+            {/* Головна завжди доступна якщо є користувач */}
+            <Route path="/" element={user ? <HomePage /> : <GoogleLogin />} />
+
+            {/* Приклад: доступ лише для employee та admin */}
             <Route
               path="/create-movement"
-              element={user || userFromRedux ? <CreateMovement /> : <Navigate to="/" />}
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<CreateMovement />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
             <Route
               path="/internal-movement"
-              element={user || userFromRedux ? <InternalMovement /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/departure"
-              element={user || userFromRedux ? <Departure /> : <Navigate to="/" />}
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<InternalMovement />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
 
             <Route
               path="/report1"
-              element={user || userFromRedux ? <FridgeMovementTable /> : <Navigate to="/" />}
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<FridgeMovementTable />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
             <Route
-              path="/report3"
-              element={user || userFromRedux ? <Report3 /> : <Navigate to="/" />}
+              path="/report2"
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<DailyMovementTable />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
+            {/* Доступ тільки для admin */}
             <Route
               path="/admin"
-              element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" />}
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<AdminPanel />}
+                    allowedRoles={['admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
+            {/* Для всіх інші сторінок */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         )}

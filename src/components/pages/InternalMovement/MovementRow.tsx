@@ -221,10 +221,10 @@ const MovementRow: React.FC<Props> = ({
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ width: '40%' }}
+        sx={{ width: '45%' }}
       >
         {selectedRow && (
-          <Box sx={{ width: '40vw', p: 2 }}>
+          <Box sx={{ width: '50vw', p: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <h3>Деталі переміщення</h3>
               <IconButton onClick={() => setDrawerOpen(false)}>
@@ -287,9 +287,9 @@ const MovementRow: React.FC<Props> = ({
                               <MenuItem value="Шкварки">Шкварки</MenuItem>
                               <MenuItem value="Шпикачки">Шпикачки</MenuItem>
                               <MenuItem value="Паштет">Паштет</MenuItem>
+                              <MenuItem value="Домашня ковбаса">Домашня ковбаса</MenuItem>
                               <MenuItem value="Ковбаски гриль">Ковбаски гриль</MenuItem>
                               <MenuItem value="Вуха">Вуха</MenuItem>
-                              <MenuItem value="Ковбаса">Ковбаса</MenuItem>
                               <MenuItem value="Ребро до пива">Ребро до пива</MenuItem>
                               <MenuItem value="Копчена ковбаса">Копчена ковбаса</MenuItem>
                               <MenuItem value="Копчене м'ясо">Копчене м&apos;ясо</MenuItem>
@@ -303,7 +303,6 @@ const MovementRow: React.FC<Props> = ({
                               <MenuItem value="Сало кускове">Сало кускове</MenuItem>
                               <MenuItem value="Сало кручене">Сало кручене</MenuItem>
                               <MenuItem value="Сало на шкірі">Сало на шкірі</MenuItem>
-                              <MenuItem value="Домашня ковбаса">Домашня ковбаса</MenuItem>
                               <MenuItem value="Копчений биток">Копчений биток</MenuItem>
                               <MenuItem value="Копчене ребро">Копчене ребро</MenuItem>
                               <MenuItem value="Язик">Язик</MenuItem>

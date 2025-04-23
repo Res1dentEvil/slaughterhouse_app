@@ -55,9 +55,6 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                           <Link to="/internal-movement" className="dropdown-item">
                             Переглянути переміщення
                           </Link>
-                          <Link to="/departure" className="dropdown-item">
-                            Вибуття
-                          </Link>
                         </>
                       )}
                       {menu === 'reports' && (
@@ -65,8 +62,8 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                           <Link to="/report1" className="dropdown-item">
                             Огляд залишків
                           </Link>
-                          <Link to="/report3" className="dropdown-item">
-                            Звіт 3
+                          <Link to="/report2" className="dropdown-item">
+                            Щоденний рух
                           </Link>
                         </>
                       )}
