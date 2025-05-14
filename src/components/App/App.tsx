@@ -11,16 +11,18 @@ import GoogleLogin from '../GoogleLogin/GoogleLogin';
 import { Container, CircularProgress, Box } from '@mui/material';
 
 import HomePage from '../pages/HomePage/HomePage';
-import Departure from '../pages/Departure/Departure';
-import Report2 from '../pages/Report1/Report1';
-import DailyMovementTable from '../pages/Report3/DailyMovementTable';
 import AdminPanel from '../pages/AdminPanel/AdminPanel';
 import NotFound from '../pages/NotFound/NotFound';
 import './App.scss';
 import InternalMovement from '../pages/InternalMovement/InternalMovement';
 import CreateMovement from '../pages/CreateMovement/CreateMovement';
-import FridgeMovementTable from '../pages/Report1/Report1';
+import FridgeMovementTable from '../pages/Reports/ReportRemains/ReportRemains';
 import ProtectedRoute from './ProtectedRoute';
+import ReportRemains from '../pages/Reports/ReportRemains/ReportRemains';
+import FridgeDailyReport from '../pages/DailyMovement/FridgeDailyReport/FridgeDailyReport';
+import { FrozenStorageDailyReport } from '../pages/DailyMovement/FrozenStorageDailyReport/FrozenStorageDailyReport';
+import SellingDailyReport from '../pages/DailyMovement/SellingDailyReport/SellingDailyReport';
+import ReportTable from '../pages/Reports/SellingReport/SellingReport';
 
 interface User {
   uid: string;
@@ -124,7 +126,21 @@ const App: React.FC = () => {
               element={
                 user ? (
                   <ProtectedRoute
-                    element={<FridgeMovementTable />}
+                    element={<ReportRemains />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+            <Route
+              path="/report2"
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<ReportTable />}
                     allowedRoles={['employee', 'admin']}
                     userRole={userRole}
                   />
@@ -135,11 +151,40 @@ const App: React.FC = () => {
             />
 
             <Route
-              path="/report2"
+              path="/daily-report1"
               element={
                 user ? (
                   <ProtectedRoute
-                    element={<DailyMovementTable />}
+                    element={<FridgeDailyReport />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+
+            <Route
+              path="/daily-report2"
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<FrozenStorageDailyReport />}
+                    allowedRoles={['employee', 'admin']}
+                    userRole={userRole}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+            <Route
+              path="/daily-report3"
+              element={
+                user ? (
+                  <ProtectedRoute
+                    element={<SellingDailyReport />}
                     allowedRoles={['employee', 'admin']}
                     userRole={userRole}
                   />

@@ -308,6 +308,7 @@ const MovementRow: React.FC<Props> = ({
                               <MenuItem value="Язик">Язик</MenuItem>
                               <MenuItem value="Голяшки">Голяшки</MenuItem>
                               <MenuItem value="Дрогобицька ковбаса">Дрогобицька ковбаса</MenuItem>
+                              <MenuItem value="Фарш">Фарш</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (

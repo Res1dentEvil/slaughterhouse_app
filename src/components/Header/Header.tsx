@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
           <img src={Logo} alt="Logo" className="header-logo" />
           {user && (
             <Box className="header-menu">
-              {['movement', 'reports', 'admin'].map((menu) => (
+              {['movement', 'reports', 'daily-movement', 'admin'].map((menu) => (
                 <Box
                   key={menu}
                   className="menu-item"
@@ -43,6 +43,8 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                       ? 'Переміщення'
                       : menu === 'reports'
                       ? 'Звіти'
+                      : menu === 'daily-movement'
+                      ? 'Щоденний рух'
                       : 'Панель Адміністратора'}
                   </button>
                   {menuOpen[menu] && (
@@ -63,8 +65,21 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                             Огляд залишків
                           </Link>
                           <Link to="/report2" className="dropdown-item">
-                            Щоденний рух
+                            Звіт продажу та реалізації
                           </Link>
+                        </>
+                      )}
+                      {menu === 'daily-movement' && (
+                        <>
+                          <Link to="/daily-report1" className="dropdown-item">
+                            Щоденний рух (В Холодильник)
+                          </Link>
+                          <Link to="/daily-report2" className="dropdown-item">
+                            Щоденний рух (В Склад готової продукції)
+                          </Link>
+                          {/*<Link to="/daily-report3" className="dropdown-item">*/}
+                          {/*  Щоденний рух (Реалізація та вибуття)*/}
+                          {/*</Link>*/}
                         </>
                       )}
                       {menu === 'admin' && (

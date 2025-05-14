@@ -11,7 +11,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../firebaseConfig';
+import { db } from '../../../../firebaseConfig';
 
 export interface Detail {
   quantity?: number;
@@ -56,7 +56,7 @@ const parseDate = (dateStr: string): Date => {
   return new Date(+year, +month - 1, +day);
 };
 
-const FridgeMovements: React.FC = () => {
+const ReportRemains: React.FC = () => {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -287,4 +287,4 @@ const FridgeMovements: React.FC = () => {
   );
 };
 
-export default FridgeMovements;
+export default ReportRemains;

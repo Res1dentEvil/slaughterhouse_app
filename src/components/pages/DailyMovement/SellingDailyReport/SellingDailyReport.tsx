@@ -11,8 +11,8 @@ import {
   Box,
 } from '@mui/material';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../firebaseConfig';
-import { Movement } from '../../../types/types';
+import { db } from '../../../../firebaseConfig';
+import { Movement } from '../../../../types/types';
 
 interface AggregatedData {
   slaughter: { quantity: number; weight: number };
@@ -23,7 +23,7 @@ interface AggregatedData {
 
 const fridgeProducts = ['Ділове', 'С/Б', 'Печінка', 'СМ', 'Голова', 'Кістки'];
 
-const DailyMovementTable: React.FC = () => {
+const SellingDailyReport: React.FC = () => {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -150,55 +150,32 @@ const DailyMovementTable: React.FC = () => {
       {loading ? (
         <CircularProgress />
       ) : (
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell align="center" sx={{ width: '5%' }}>
-                  Дата
-                </TableCell>
-                <TableCell align="center" colSpan={2} sx={{ width: '10%' }}>
-                  Цех забою
-                </TableCell>
-                <TableCell align="center" colSpan={fridgeProducts.length} sx={{ width: '60%' }}>
-                  Холодильник
-                </TableCell>
-                <TableCell align="center" sx={{ width: '10%' }}>
-                  Утилізації відходів
-                </TableCell>
-                <TableCell align="center" sx={{ width: '10%' }}>
-                  Відходи маточник
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }} />
-                <TableCell align="center">Голів</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
-                  Вага
-                </TableCell>
-                {fridgeProducts.map((p, i) => (
-                  <TableCell
-                    align="center"
-                    key={p}
-                    sx={i === fridgeProducts.length - 1 ? { borderRight: '1px solid #E6E6E6' } : {}}
-                  >
-                    {p}
+        <>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center" sx={{ width: '5%' }}>
+                    Дата
                   </TableCell>
-                ))}
-                <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }} />
-                <TableCell align="center" />
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {filteredGroupedData.map(([date, data]) => (
-                <TableRow key={date}>
-                  <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
-                    {date}
+                  <TableCell align="center" colSpan={2} sx={{ width: '10%' }}>
+                    Цех забою
                   </TableCell>
-                  <TableCell align="center">{data.slaughter.quantity}</TableCell>
+                  <TableCell align="center" colSpan={fridgeProducts.length} sx={{ width: '60%' }}>
+                    Холодильник
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: '10%' }}>
+                    Утилізації відходів
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: '10%' }}>
+                    Відходи маточник
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }} />
+                  <TableCell align="center">Голів</TableCell>
                   <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
-                    {data.slaughter.weight.toFixed(2)}
+                    Вага
                   </TableCell>
                   {fridgeProducts.map((p, i) => (
                     <TableCell
@@ -208,21 +185,50 @@ const DailyMovementTable: React.FC = () => {
                         i === fridgeProducts.length - 1 ? { borderRight: '1px solid #E6E6E6' } : {}
                       }
                     >
-                      {data.fridge[p].toFixed(2)}
+                      {p}
                     </TableCell>
                   ))}
-                  <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
-                    {data.waste.toFixed(2)}
-                  </TableCell>
-                  <TableCell align="center">{data.wasteMother.toFixed(2)}</TableCell>
+                  <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }} />
+                  <TableCell align="center" />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+
+              <TableBody>
+                {filteredGroupedData.map(([date, data]) => (
+                  <TableRow key={date}>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
+                      {date}
+                    </TableCell>
+                    <TableCell align="center">{data.slaughter.quantity}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
+                      {data.slaughter.weight.toFixed(2)}
+                    </TableCell>
+                    {fridgeProducts.map((p, i) => (
+                      <TableCell
+                        align="center"
+                        key={p}
+                        sx={
+                          i === fridgeProducts.length - 1
+                            ? { borderRight: '1px solid #E6E6E6' }
+                            : {}
+                        }
+                      >
+                        {data.fridge[p].toFixed(2)}
+                      </TableCell>
+                    ))}
+                    <TableCell align="center" sx={{ borderRight: '1px solid #E6E6E6' }}>
+                      {data.waste.toFixed(2)}
+                    </TableCell>
+                    <TableCell align="center">{data.wasteMother.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       )}
     </>
   );
 };
 
-export default DailyMovementTable;
+export default SellingDailyReport;
