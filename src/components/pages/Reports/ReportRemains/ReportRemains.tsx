@@ -42,7 +42,7 @@ interface ProductStats {
   closing: number;
 }
 
-const INTERESTED_PRODUCTS = ['Ділове', 'С/Б', 'Голова', 'Печінка', 'СМ', 'Кістки'];
+const INTERESTED_PRODUCTS = ['Ділове', 'С/Б', 'Голова', 'Печінка', 'СМ'];
 
 const parseDate = (dateStr: string): Date => {
   // Перевірка на формат yyyy-mm-dd (від TextField type="date")

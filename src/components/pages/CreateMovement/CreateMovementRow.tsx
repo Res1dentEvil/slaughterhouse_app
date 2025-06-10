@@ -42,7 +42,8 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
   const [from, setFrom] = useState<string>('');
   const [to, setTo] = useState<string>('');
   const [who, setWho] = useState<string>('');
-  const [createdAt, setCreatedAt] = useState<string>('');
+  // const [createdAt, setCreatedAt] = useState<string>('');
+  const [createdAt, setCreatedAt] = useState<Timestamp | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string>('');
 
   const [drawersDetails, setDrawersDetails] = useState<Detail[]>([]);
@@ -59,7 +60,7 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
     if (userFromRedux?.displayName) {
       setWho(userFromRedux.displayName);
     }
-    setCreatedAt(formattedDate);
+    setCreatedAt(Timestamp.now());
     setUpdatedAt(formattedDate);
   }, [userFromRedux]);
 
@@ -209,9 +210,9 @@ const CreateMovementRow: React.FC<Props> = ({ onSave, cleanRows }) => {
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ width: '45%' }}
+        sx={{ width: '50%' }}
       >
-        <Box sx={{ width: '50vw', p: 2 }}>
+        <Box sx={{ width: '55vw', p: 2 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <h3>Деталі переміщення</h3>
             <IconButton onClick={() => setDrawerOpen(false)}>

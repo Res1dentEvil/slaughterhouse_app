@@ -1,10 +1,12 @@
+import { Timestamp } from 'firebase/firestore';
+
 export interface Movement {
   id: string;
   date: string;
   from: string;
   to: string;
   who: string;
-  createdAt: string;
+  createdAt: Timestamp;
   updatedAt: string;
   details: Detail[];
 }

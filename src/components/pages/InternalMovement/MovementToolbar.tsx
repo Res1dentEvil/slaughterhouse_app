@@ -65,9 +65,9 @@ const MovementToolbar: React.FC<Props> = ({
         Видалити
       </Button>
 
-      <Button variant="contained" color="primary" onClick={exportToExcel}>
-        Завантажити Excel
-      </Button>
+      {/*<Button variant="contained" color="primary" onClick={exportToExcel}>*/}
+      {/*  Завантажити Excel*/}
+      {/*</Button>*/}
 
       {/* Підтвердження */}
       <Dialog open={openConfirm} onClose={handleCloseConfirm}>

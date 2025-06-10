@@ -202,7 +202,9 @@ const MovementRow: React.FC<Props> = ({
         )}
       </TableCell>
       <TableCell>{row.who}</TableCell>
-      <TableCell>{row.createdAt}</TableCell>
+      <TableCell>{new Date(row.createdAt.seconds * 1000).toLocaleString()}</TableCell>
+      {/*<TableCell>{row.createdAt}</TableCell>*/}
+
       <TableCell>{row.updatedAt}</TableCell>
       <TableCell>
         {selectedRowId === row.id ? (

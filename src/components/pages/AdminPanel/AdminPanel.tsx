@@ -3,6 +3,7 @@ import { db } from '../../../firebaseConfig';
 import { doc, getDocs, collection, updateDoc } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
+import { setDoc } from 'firebase/firestore';
 import {
   Button,
   CircularProgress,
@@ -21,6 +22,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Edit } from '@mui/icons-material';
+import FixCreatedAtButton from './FixCreatedAtButton';
 
 // Типізація для користувача
 interface User {
@@ -40,6 +42,63 @@ const AdminPanel: React.FC = () => {
   const [snackMessage, setSnackMessage] = useState<string>('');
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
+
+  const [calculating, setCalculating] = useState(false);
+  const [movementsSizeGB, setMovementsSizeGB] = useState<number | null>(null);
+  const [movementsCount, setMovementsCount] = useState<number | null>(null);
+
+  const [duplicating, setDuplicating] = useState(false);
+
+  //створити бекап
+  const duplicateMovementsCollection = async () => {
+    setDuplicating(true);
+    try {
+      const movementsSnapshot = await getDocs(collection(db, 'movements'));
+      const backupRef = collection(db, 'movements_backup');
+
+      for (const docSnap of movementsSnapshot.docs) {
+        await setDoc(doc(backupRef, docSnap.id), docSnap.data());
+      }
+
+      setSnackMessage('Колекцію успішно продубльовано!');
+      setSnackOpen(true);
+    } catch (error) {
+      console.error('Помилка дублювання колекції:', error);
+      setSnackMessage('Сталася помилка під час дублювання!');
+      setSnackOpen(true);
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  //вирахувати використане місце
+  const calculateMovementsSize = async () => {
+    setCalculating(true);
+    setMovementsSizeGB(null);
+    setMovementsCount(null);
+
+    try {
+      const snapshot = await getDocs(collection(db, 'movements'));
+      let totalBytes = 0;
+      const docs = snapshot.docs;
+
+      docs.forEach((doc) => {
+        const data = doc.data();
+        const jsonString = JSON.stringify(data);
+        totalBytes += new TextEncoder().encode(jsonString).length;
+      });
+
+      const sizeInGB = totalBytes / (1024 * 1024 * 1024);
+      setMovementsCount(docs.length);
+      setMovementsSizeGB(Number(sizeInGB.toFixed(5)));
+    } catch (error) {
+      console.error('Помилка при розрахунку обсягу переміщень:', error);
+      setSnackMessage('Помилка при розрахунку обсягу переміщень!');
+      setSnackOpen(true);
+    } finally {
+      setCalculating(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -176,6 +235,60 @@ const AdminPanel: React.FC = () => {
             {snackMessage}
           </Alert>
         </Snackbar>
+      </div>
+
+      <div className="flex flex-col items-center gap-4 mb-6" style={{ marginLeft: '20px' }}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={calculateMovementsSize}
+          disabled={calculating}
+          sx={{ width: '300px', fontSize: '14px', marginTop: '30px', marginBottom: '20px' }}
+        >
+          {calculating ? 'Розрахунок...' : 'Розрахувати обсяг Storage'}
+        </Button>
+
+        {calculating && <CircularProgress />}
+
+        {movementsSizeGB !== null && movementsCount !== null && (
+          <div className="text-center">
+            <p>
+              Кількість записів: <strong>{movementsCount}</strong>
+            </p>
+            <p>
+              Загальний обсяг: <strong>{movementsSizeGB} GB</strong>
+            </p>
+
+            {movementsCount > 0 && (
+              <p>
+                Орієнтовно можна додати ще:{' '}
+                <strong>
+                  {Math.floor(
+                    (1 - movementsSizeGB) / (movementsSizeGB / movementsCount)
+                  ).toLocaleString()}
+                </strong>{' '}
+                записів
+              </p>
+            )}
+          </div>
+        )}
+
+        <Button
+          variant="contained"
+          color="success"
+          onClick={duplicateMovementsCollection}
+          disabled={duplicating}
+          sx={{
+            width: '300px',
+            fontSize: '14px',
+            marginTop: '30px',
+            marginBottom: '20px',
+            marginLeft: '20px',
+          }}
+        >
+          {duplicating ? 'Дублювання...' : 'Зробити бекап колекції'}
+        </Button>
+        {/*<FixCreatedAtButton />*/}
       </div>
     </div>
   );

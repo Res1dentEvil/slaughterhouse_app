@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Movement } from '../../../types/types';
 import MovementToolbar from './MovementToolbar';
 import MovementTable from './MovementTable';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
-import { Timestamp } from 'firebase/firestore';
-import { doc, deleteDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Box } from '@mui/material';
@@ -21,70 +19,72 @@ const InternalMovement: React.FC = () => {
     updatedAt: '',
   });
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
-  const [editingRowId, setEditingRowId] = useState<string | null>(null); // Окремий стан для редагування
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+
+  // Debounce hook прямо у файлі
+  const useDebounce = <T,>(value: T, delay: number): T => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => setDebouncedValue(value), delay);
+      return () => clearTimeout(handler);
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedFilters = useDebounce(filters, 1000);
 
   const handleEditClick = (rowId: string) => {
-    setEditingRowId(rowId === editingRowId ? null : rowId); // Перемикаємо стан редагування для вибраного рядка
+    setEditingRowId(rowId === editingRowId ? null : rowId);
   };
 
   const handleFilterChange = (field: string, value: string) => {
-    if (field === 'date' || field === 'createdAt' || field === 'updatedAt') {
-      setFilters((prev) => ({
-        ...prev,
-        [field]: value, // Зберігаємо рядок фільтра, щоб потім правильно обробити
-      }));
-    } else {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
+    setFilters((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  const filteredRows = rows.filter((row) =>
-    Object.entries(filters).every(([key, value]) => {
-      if (!value) return true; // Якщо фільтр порожній, не застосовуємо його
+  const filteredRows = useMemo(() => {
+    return rows.filter((row) =>
+      Object.entries(debouncedFilters).every(([key, value]) => {
+        if (!value) return true;
 
-      if (key === 'date' || key === 'createdAt' || key === 'updatedAt') {
-        // Перетворюємо дату в форматі "дд.мм.рррр" у Date
-        const parseDate = (dateStr: string) => {
-          const [day, month, year] = dateStr.split('.').map(Number);
-          return new Date(year, month - 1, day); // month - 1, бо JS рахує з 0
-        };
+        if (key === 'date' || key === 'createdAt' || key === 'updatedAt') {
+          const parseDate = (dateStr: string) => {
+            const [day, month, year] = dateStr.split('.').map(Number);
+            return new Date(year, month - 1, day);
+          };
 
-        if (value.includes('..')) {
-          const [start, end] = value.split('..').map((d) => d.trim());
-
-          if (start && end) {
-            // Фільтр в діапазоні
-            const startDate = parseDate(start);
-            const endDate = parseDate(end);
-            const rowDate = parseDate(row[key as keyof Movement]?.toString() || '');
-
-            return rowDate >= startDate && rowDate <= endDate;
-          } else if (start) {
-            // Фільтр "від дати"
-            const startDate = parseDate(start);
-            const rowDate = parseDate(row[key as keyof Movement]?.toString() || '');
-
-            return rowDate >= startDate;
+          if (value.includes('..')) {
+            const [start, end] = value.split('..').map((d) => d.trim());
+            if (start && end) {
+              const startDate = parseDate(start);
+              const endDate = parseDate(end);
+              const rowDate = parseDate(row[key as keyof Movement]?.toString() || '');
+              return rowDate >= startDate && rowDate <= endDate;
+            } else if (start) {
+              const startDate = parseDate(start);
+              const rowDate = parseDate(row[key as keyof Movement]?.toString() || '');
+              return rowDate >= startDate;
+            }
           }
         }
-      }
 
-      return row[key as keyof Movement]?.toString().toLowerCase().includes(value.toLowerCase());
-    })
-  );
+        return row[key as keyof Movement]?.toString().toLowerCase().includes(value.toLowerCase());
+      })
+    );
+  }, [rows, debouncedFilters]);
 
-  // Функція експорту
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Movements');
-
-    // Генерація файлу
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-
     saveAs(data, 'movements.xlsx');
     console.log('movements.xlsx');
   };
@@ -93,38 +93,58 @@ const InternalMovement: React.FC = () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'movements'));
       return querySnapshot.docs.map((doc) => ({
-        id: doc.id, // Firestore генерує рядковий ID
+        id: doc.id,
         ...doc.data(),
       })) as Movement[];
     } catch (error) {
-      console.error('Помилка при отриманні даних:', error);
+      console.error('Помилка при отриманні всіх даних:', error);
       return [];
     }
   };
 
-  // Функція для форматування дати
-  const formatTimestamp = (timestamp: Timestamp | string | undefined): string => {
-    if (!timestamp) return '—'; // Якщо значення немає
+  const getRecentMovements = async (): Promise<Movement[]> => {
+    try {
+      const now = new Date();
+      const thirtyOneDaysAgo = new Date(now.setDate(now.getDate() - 31));
+      const timestampLimit = Timestamp.fromDate(thirtyOneDaysAgo);
 
-    if (typeof timestamp === 'string') return timestamp; // Якщо це вже рядок, повертаємо без змін
+      const q = query(collection(db, 'movements'), where('createdAt', '>=', timestampLimit));
+      const querySnapshot = await getDocs(q);
 
-    return new Date(timestamp.seconds * 1000).toLocaleString(); // Якщо це Firestore Timestamp
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Movement[];
+    } catch (error) {
+      console.error('Помилка при отриманні останніх даних:', error);
+      return [];
+    }
   };
 
+  const formatTimestamp = (timestamp: Timestamp | string | undefined): string => {
+    if (!timestamp) return '—';
+    if (typeof timestamp === 'string') return timestamp;
+    return new Date(timestamp.seconds * 1000).toLocaleString();
+  };
+
+  const isAnyFilterActive = Object.entries(debouncedFilters).some(([key, value]) => {
+    return key !== 'createdAt' && value !== '';
+  });
+
   const fetchMovements = async () => {
-    const data = await getAllMovements();
-    // console.log('Отримані дані:', data);
+    const data = isAnyFilterActive ? await getAllMovements() : await getRecentMovements();
+
     const formattedData = data.map((item) => ({
       ...item,
-      createdAt: formatTimestamp(item.createdAt as Timestamp | string),
       updatedAt: formatTimestamp(item.updatedAt as Timestamp | string),
     }));
 
     setRows(formattedData);
   };
+
   useEffect(() => {
     fetchMovements();
-  }, []);
+  }, [debouncedFilters]);
 
   const handleDeleteMovement = async (id: string) => {
     try {
@@ -152,8 +172,8 @@ const InternalMovement: React.FC = () => {
         selectedRowId={selectedRowId}
         setSelectedRowId={setSelectedRowId}
         handleFilterChange={handleFilterChange}
-        isEditingRow={(rowId) => editingRowId === rowId} // Перевіряємо, чи цей рядок редагується
-        editingRowId={editingRowId} // Передаємо для блокування вибору інших рядків
+        isEditingRow={(rowId) => editingRowId === rowId}
+        editingRowId={editingRowId}
         setEditingRowId={setEditingRowId}
       />
     </Box>
